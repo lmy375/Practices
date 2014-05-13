@@ -1,0 +1,149 @@
+; Screen buffer and keyboard
+STACK SEGMENT PARA STACK
+DW 100H DUP(?)
+STACK ENDS
+
+DATA SEGMENT PARA
+T_STRING DB 'File    '
+		 DB	'Edit    '
+		 DB	'Search  '
+		 DB	'View    '
+		 DB	'Options '
+		 DB	'Help    ',00H
+
+T_LEN	EQU	8
+ATTR	EQU	70H
+SCR_BUF EQU 0B800H
+
+DATA ENDS
+
+CODE SEGMENT PARA
+	ASSUME CS:CODE, DS:DATA, SS:STACK
+
+START:
+	MOV AX, DATA
+	MOV	DS, AX
+
+	MOV	AH,	0FH
+	INT 10H
+	CMP AL, 03H
+	JZ CLR_SCR
+	MOV	AH, 00H
+	MOV	AL, 3
+	INT 10H
+
+CLR_SCR:
+	MOV	AX, SCR_BUF		; Clean the screen
+	MOV ES, AX
+	MOV DI, 0
+	MOV CX,80*25
+	CLD
+
+	MOV	AX,0F20H		; Space 
+	REP	STOSW
+
+SET_MENU:
+	CALL SET_MENU_PROC
+
+TEST_BTN:
+	MOV AH, 0; Get key down
+	INT 16H
+
+	CMP AH, 1 ; If press ESC , exit
+	JE END_L
+
+	MOV BX,AX
+	MOV AH,2  ; Get keyboard status
+	INT 16H
+	TEST AL,1000B ; Test Alt-Key down ?
+	JE SET_MENU ; If not , loop
+	
+	MOV AX,BX
+
+	CMP AH,21H	;F
+	JE F_DOWN
+	CMP AH,12H	;E
+	JE E_DOWN
+	CMP AH,2FH	;V
+	JE V_DOWN
+	CMP AH,1FH	;S
+	JE S_DOWN
+	CMP AH,18H	;O
+	JE O_DOWN
+	CMP AH,23H	;H
+	JE H_DOWN
+	JMP SET_MENU 	; Else refresh the menu
+	
+
+F_DOWN:			; File
+	MOV DI,0*T_LEN
+	MOV CX,4
+	JMP HIGHLIGHT
+E_DOWN:			; Edit
+	MOV DI,1*T_LEN
+	MOV CX,4
+	JMP HIGHLIGHT
+S_DOWN:			; Search
+	MOV	DI,2*T_LEN
+	MOV CX,6
+	JMP HIGHLIGHT
+V_DOWN:			; View
+	MOV DI,3*T_LEN
+	MOV CX,4
+	JMP HIGHLIGHT
+O_DOWN:			; Options
+	MOV DI,4*T_LEN
+	MOV CX,7
+	JMP HIGHLIGHT
+H_DOWN:			; Help
+	MOV DI,5*T_LEN
+	MOV CX,4
+	JMP HIGHLIGHT
+
+HIGHLIGHT:
+	CALL SET_MENU_PROC
+	SHL DI,1 	; Buffer offset is double of string offset
+	ADD DI, 1 ; Style byte
+	CLD
+
+LP2:
+	MOV AL,ATTR
+	STOSB
+	INC DI
+	LOOP LP2
+
+	JMP TEST_BTN
+
+END_L:
+	MOV AX ,4C00H
+	INT 21H
+
+SET_MENU_PROC PROC
+	PUSH DI
+	PUSH SI
+	MOV	DI,0
+	MOV SI, OFFSET T_STRING 
+
+LP1:
+	LODSB
+	MOV AH,0FH
+	STOSW		; Show menu text
+				; Skip style
+	CMP AL,00H
+	JZ SET_RET	
+	JMP LP1
+
+SET_RET:
+	POP SI
+	POP DI
+	RET
+SET_MENU_PROC ENDP
+
+PAUSE PROC 
+	MOV AH,0
+	INT 16H
+	RET
+PAUSE ENDP
+
+CODE ENDS
+	END START
