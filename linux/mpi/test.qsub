@@ -1,0 +1,12 @@
+#!/bin/sh
+
+#PBS -N hellonew
+#PBS -l nodes=2:ppn=8
+#PBS -l mem=100mb
+#PBS -j oe
+#PBS -q para
+
+nprocs=`wc -l < $PBS_NODEFILE`
+cd $PBS_O_WORKDIR
+
+/opt/openmpi/bin/mpirun -np $nprocs -machinefile $PBS_NODEFILE ./helloworld
