@@ -1,4 +1,4 @@
-
+# 使用IDAPython模拟逆向程序执行过程，计算出Flag
 
 def _next_inst(addr,step=1):
 	for i in range(step):
