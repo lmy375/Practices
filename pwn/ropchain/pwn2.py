@@ -1,3 +1,4 @@
+# coding:utf-8
 # 静态编译无system，使用ROPgadget构造ROP链
 
 from zio import *
