@@ -8,6 +8,8 @@ io = process('./bof_32')
 e = ELF('./bof_32')
 libc = ELF('/lib32/libc.so.6')
 
+gdb.attach(io, 'b main')
+
 _bss = 0x080497E5
 
 def leak(addr):

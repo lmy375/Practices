@@ -4,7 +4,7 @@
 
 from pwn import *
 
-#context.log_level='debug'
+context.log_level='debug'
 
 io = process('./fmt')
 e = ELF('./fmt')
